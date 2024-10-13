@@ -204,3 +204,15 @@ func renderTemplate(data map[string]interface{}) string {
 
 	return buf.String()
 }
+
+func serveFile(w http.ResponseWriter, r *http.Request, filePath string) {
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	http.ServeFile(w, r, filePath)
+}
+
+func main() {
+}
