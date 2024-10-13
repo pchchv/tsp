@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -212,6 +213,15 @@ func serveFile(w http.ResponseWriter, r *http.Request, filePath string) {
 	}
 
 	http.ServeFile(w, r, filePath)
+}
+
+func handleHome(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method Not Allowed!", http.StatusMethodNotAllowed)
+		return
+	}
+
+	_, _ = fmt.Fprintf(w, templateStatus, runtime.Version(), runtime.NumGoroutine())
 }
 
 func main() {
