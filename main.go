@@ -1,14 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -24,6 +27,8 @@ type HistoryEntry struct {
 	Timestamp string `json:"timestamp"`
 	Status    bool   `json:"status"`
 }
+
+const historyfile = "history.html"
 
 var (
 	maxHistoryEntries = getEnvInt("MAX_HISTORY_ENTRIES", 10)
@@ -151,4 +156,29 @@ func updateHistory(results []map[string]interface{}) {
 		}
 	}
 	saveHistory(history)
+}
+
+func generateHistoryPage() {
+	history := loadHistory()
+	tmpl, err := template.New("history").Funcs(template.FuncMap{
+		"split": func(s, sep string) []string {
+			return strings.Split(s, sep)
+		},
+	}).Parse(historyTemplateFile)
+	if err != nil {
+		log.Fatal("Failed to parse history template:", err)
+	}
+
+	var buf bytes.Buffer
+	data := map[string]interface{}{
+		"history":      history,
+		"last_updated": time.Now().Format("2006-01-02 15:04:05"),
+	}
+	if err = tmpl.Execute(&buf, data); err != nil {
+		log.Fatal("Failed to execute history template:", err)
+	}
+
+	if err = os.WriteFile(historyfile, buf.Bytes(), 0644); err != nil {
+		log.Fatal("Failed to write history page:", err)
+	}
 }
