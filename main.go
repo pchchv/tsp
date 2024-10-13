@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -21,6 +22,8 @@ type HistoryEntry struct {
 	Timestamp string `json:"timestamp"`
 	Status    bool   `json:"status"`
 }
+
+var historyFile = getEnv("STATUS_HISTORY_FILE", "history.json")
 
 func getEnv(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
@@ -85,6 +88,24 @@ func runChecks(checks []Check) (results []map[string]interface{}) {
 
 	for i := 0; i < len(checks); i++ {
 		results = append(results, <-resultsCh)
+	}
+
+	return
+}
+
+func loadHistory() (history map[string][]HistoryEntry) {
+	file, err := os.Open(historyFile)
+	if err != nil {
+		return map[string][]HistoryEntry{}
+	}
+
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
+
+	_ = json.NewDecoder(file).Decode(&history)
+	if history == nil {
+		history = make(map[string][]HistoryEntry)
 	}
 
 	return
