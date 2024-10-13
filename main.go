@@ -43,3 +43,27 @@ func checkPort(host string, port int) bool {
 
 	return true
 }
+
+func runChecks(checks []Check) (results []map[string]interface{}) {
+	resultsCh := make(chan map[string]interface{}, len(checks))
+	for _, check := range checks {
+		go func(c Check) {
+			var status bool
+			switch c.Type {
+			case "http":
+				status = checkHTTP(c.Host, c.ExpectedCode)
+			case "ping":
+				status = checkPing(c.Host)
+			case "port":
+				status = checkPort(c.Host, c.Port)
+			}
+			resultsCh <- map[string]interface{}{"name": c.Name, "status": status}
+		}(check)
+	}
+
+	for i := 0; i < len(checks); i++ {
+		results = append(results, <-resultsCh)
+	}
+
+	return
+}
