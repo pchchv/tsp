@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"net"
 	"net/http"
 	"os/exec"
+	"time"
 )
 
 type Check struct {
@@ -26,4 +29,17 @@ func checkHTTP(url string, expectedCode int) bool {
 func checkPing(host string) bool {
 	cmd := exec.Command("ping", "-c", "1", "-W", "2", host)
 	return cmd.Run() == nil
+}
+
+func checkPort(host string, port int) bool {
+	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), 2*time.Second)
+	if err != nil {
+		return false
+	}
+
+	defer func(conn net.Conn) {
+		_ = conn.Close()
+	}(conn)
+
+	return true
 }
