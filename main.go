@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -109,4 +110,18 @@ func loadHistory() (history map[string][]HistoryEntry) {
 	}
 
 	return
+}
+
+func saveHistory(history map[string][]HistoryEntry) {
+	file, err := os.Create(historyFile)
+	if err != nil {
+		log.Println("Failed to save history:", err)
+		return
+	}
+
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
+
+	_ = json.NewEncoder(file).Encode(history)
 }
