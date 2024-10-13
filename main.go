@@ -16,6 +16,11 @@ type Check struct {
 	ExpectedCode int    `yaml:"expected_code"`
 }
 
+type HistoryEntry struct {
+	Timestamp string `json:"timestamp"`
+	Status    bool   `json:"status"`
+}
+
 func checkHTTP(url string, expectedCode int) bool {
 	resp, err := http.Get(url)
 	if err != nil {
