@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
 	"time"
 )
@@ -19,6 +20,22 @@ type Check struct {
 type HistoryEntry struct {
 	Timestamp string `json:"timestamp"`
 	Status    bool   `json:"status"`
+}
+
+func getEnv(key, fallback string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return fallback
+}
+
+func getEnvInt(key string, fallback int) int {
+	if value, exists := os.LookupEnv(key); exists {
+		var intValue int
+		_, _ = fmt.Sscanf(value, "%d", &intValue)
+		return intValue
+	}
+	return fallback
 }
 
 func checkHTTP(url string, expectedCode int) bool {
