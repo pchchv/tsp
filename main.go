@@ -182,3 +182,25 @@ func generateHistoryPage() {
 		log.Fatal("Failed to write history page:", err)
 	}
 }
+
+func renderTemplate(data map[string]interface{}) string {
+	funcMap := template.FuncMap{
+		"check": func(status bool) string {
+			if status {
+				return "Up"
+			}
+			return "Down"
+		},
+	}
+	tmpl, err := template.New("status").Funcs(funcMap).Parse(templateFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var buf bytes.Buffer
+	if err = tmpl.Execute(&buf, data); err != nil {
+		log.Fatal(err)
+	}
+
+	return buf.String()
+}
