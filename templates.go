@@ -172,3 +172,38 @@ const templateFile = `<!DOCTYPE html>
 </div>
 </body>
 </html>`
+
+const templateStatus = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Status</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #bb86fc;
+        }
+        pre {
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>I'm alive!</h1>
+    <p>Go Version: %s</p>
+    <p>Go Routines: %d</p>
+    <p>Source Code: <a href="https://github.com/pchchv/tsp" style="color: #bb86fc;">tsp</a></p>
+</body>
+</html>`
