@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"sort"
 	"time"
 )
 
@@ -24,7 +25,10 @@ type HistoryEntry struct {
 	Status    bool   `json:"status"`
 }
 
-var historyFile = getEnv("STATUS_HISTORY_FILE", "history.json")
+var (
+	maxHistoryEntries = getEnvInt("MAX_HISTORY_ENTRIES", 10)
+	historyFile = getEnv("STATUS_HISTORY_FILE", "history.json")
+)
 
 func getEnv(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
@@ -124,4 +128,27 @@ func saveHistory(history map[string][]HistoryEntry) {
 	}(file)
 
 	_ = json.NewEncoder(file).Encode(history)
+}
+
+func updateHistory(results []map[string]interface{}) {
+	history := loadHistory()
+	currentTime := time.Now().Format(time.RFC3339)
+	for _, result := range results {
+		name := result["name"].(string)
+		if _, exists := history[name]; !exists {
+			history[name] = []HistoryEntry{}
+		}
+
+		history[name] = append(history[name], HistoryEntry{currentTime, result["status"].(bool)})
+		sort.Slice(history[name], func(i, j int) bool {
+			timeI, _ := time.Parse(time.RFC3339, history[name][i].Timestamp)
+			timeJ, _ := time.Parse(time.RFC3339, history[name][j].Timestamp)
+			return timeI.After(timeJ)
+		})
+
+		if len(history[name]) > maxHistoryEntries {
+			history[name] = history[name][:maxHistoryEntries]
+		}
+	}
+	saveHistory(history)
 }
