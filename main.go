@@ -271,36 +271,39 @@ func monitorServices() {
 
 func main() {
 	log.Println("Monitoring services ...")
+	if port != "" {
+		go monitorServices()
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/" {
+				serveFile(w, r, "./"+indexfile)
+			} else {
+				http.NotFound(w, r)
+			}
+		})
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
-			serveFile(w, r, "./"+indexfile)
-		} else {
-			http.NotFound(w, r)
+		http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasPrefix(r.URL.Path, "/status") {
+				handleHome(w, r)
+			} else {
+				http.NotFound(w, r)
+			}
+		})
+
+		http.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasPrefix(r.URL.Path, "/history") {
+				serveFile(w, r, "./"+historyfile)
+			} else {
+				http.NotFound(w, r)
+			}
+		})
+
+		log.Println("Server started!")
+
+		if err := http.ListenAndServe(":"+port, nil); err != nil {
+			log.Println(err.Error())
 		}
-	})
-
-	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasPrefix(r.URL.Path, "/status") {
-			handleHome(w, r)
-		} else {
-			http.NotFound(w, r)
-		}
-	})
-
-	http.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasPrefix(r.URL.Path, "/history") {
-			serveFile(w, r, "./"+historyfile)
-		} else {
-			http.NotFound(w, r)
-		}
-	})
-
-	log.Println("Server started!")
-
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Println(err.Error())
+	} else {
+		monitorServices()
 	}
-
 	log.Println("Bye!")
 }
