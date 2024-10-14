@@ -229,6 +229,8 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	log.Println("Monitoring services ...")
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
 			serveFile(w, r, "./"+indexfile)
@@ -245,9 +247,19 @@ func main() {
 		}
 	})
 
+	http.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/history") {
+			serveFile(w, r, "./"+historyfile)
+		} else {
+			http.NotFound(w, r)
+		}
+	})
+
 	log.Println("Server started!")
+
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Println(err.Error())
 	}
+
 	log.Println("Bye!")
 }
