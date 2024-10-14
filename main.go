@@ -237,6 +237,14 @@ func main() {
 		}
 	})
 
+	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/status") {
+			handleHome(w, r)
+		} else {
+			http.NotFound(w, r)
+		}
+	})
+
 	log.Println("Server started!")
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Println(err.Error())
