@@ -29,7 +29,10 @@ type HistoryEntry struct {
 	Status    bool   `json:"status"`
 }
 
-const historyfile = "history.html"
+const (
+	indexfile   = "index.html"
+	historyfile = "history.html"
+)
 
 var (
 	maxHistoryEntries = getEnvInt("MAX_HISTORY_ENTRIES", 10)
@@ -226,6 +229,14 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			serveFile(w, r, "./"+indexfile)
+		} else {
+			http.NotFound(w, r)
+		}
+	})
+
 	log.Println("Server started!")
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Println(err.Error())
