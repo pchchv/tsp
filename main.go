@@ -14,6 +14,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Check struct {
@@ -35,9 +37,12 @@ const (
 )
 
 var (
+	checkInterval     = getEnvInt("CHECK_INTERVAL", 60)
 	maxHistoryEntries = getEnvInt("MAX_HISTORY_ENTRIES", 10)
-	historyFile = getEnv("STATUS_HISTORY_FILE", "history.json")
-	port        = getEnv("PORT", "")
+	checksFile        = getEnv("CHECKS_FILE", "checks.yaml")
+	incidentsFile     = getEnv("INCIDENTS_FILE", "incidents.html")
+	historyFile       = getEnv("STATUS_HISTORY_FILE", "history.json")
+	port              = getEnv("PORT", "")
 )
 
 func getEnv(key, fallback string) string {
@@ -226,6 +231,42 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, _ = fmt.Fprintf(w, templateStatus, runtime.Version(), runtime.NumGoroutine())
+}
+
+func monitorServices() {
+	for {
+		checksData, err := os.ReadFile(checksFile)
+		if err != nil {
+			log.Fatal("Failed to load checks file:", err)
+		}
+
+		var checks []Check
+		if err = yaml.Unmarshal(checksData, &checks); err != nil {
+			log.Fatal("Failed to parse checks file:", err)
+		}
+
+		results := runChecks(checks)
+		updateHistory(results)
+		incidentMarkdown, err := os.ReadFile(incidentsFile)
+		if err != nil {
+			log.Println("Failed to load incidents:", err)
+			incidentMarkdown = []byte("<h2>All Fine!</h2>")
+		}
+
+		data := map[string]interface{}{
+			"checks":       results,
+			"incidents":    template.HTML(incidentMarkdown),
+			"last_updated": time.Now().Format("2006-01-02 15:04:05"),
+		}
+		html := renderTemplate(data)
+		if err = os.WriteFile(indexfile, []byte(html), 0644); err != nil {
+			log.Fatal("Failed to write index.html:", err)
+		}
+
+		generateHistoryPage()
+		log.Println("Status pages updated!")
+		time.Sleep(time.Duration(checkInterval) * time.Second)
+	}
 }
 
 func main() {
