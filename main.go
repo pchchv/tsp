@@ -34,6 +34,7 @@ const historyfile = "history.html"
 var (
 	maxHistoryEntries = getEnvInt("MAX_HISTORY_ENTRIES", 10)
 	historyFile = getEnv("STATUS_HISTORY_FILE", "history.json")
+	port        = getEnv("PORT", "")
 )
 
 func getEnv(key, fallback string) string {
@@ -225,4 +226,9 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	log.Println("Server started!")
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
+		log.Println(err.Error())
+	}
+	log.Println("Bye!")
 }
