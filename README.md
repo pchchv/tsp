@@ -40,3 +40,12 @@
    - On Windows, you can use the Task Scheduler to run the exe file at startup.
 
 4. Serve the generated HTML files using HTTP server at specific PORT.
+
+## Using Docker
+
+In order to run the script using Docker:
+
+   ```
+    docker build -t tsp .
+    docker run -ti --rm --name tsp -v "$PWD":/usr/src/myapp -w /usr/src/myapp tsp
+   ```
