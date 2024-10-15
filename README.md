@@ -49,3 +49,9 @@ In order to run the script using Docker:
     docker build -t tsp .
     docker run -ti --rm --name tsp -v "$PWD":/usr/src/myapp -w /usr/src/myapp tsp
    ```
+
+## Customization
+
+- Set the configuration variables in the `.env` file to customize the behavior of tsp.
+- Customize the appearance of the status page by editing the CSS in `templateFile` and `historyTemplateFile`.
+- Add or remove services by modifying the `checks.yaml` file.
